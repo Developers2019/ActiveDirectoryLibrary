@@ -1,9 +1,8 @@
-# ActiveDirectoryLibrary NuGet Package
+# ActiveDirectoryLibrary
 
 ## Overview
 
-The ADAuthentication NuGet package provides functionality for validating team member details and authenticating against Active Directory Domain Services. 
-It includes a class `ADAuthentication` that implements the `IADAuthentication` interface.
+The ActiveDirectoryLibrary provides functionality for validating team member details and authenticating against Active Directory Domain Services. It includes a class `ADAuthentication` that implements the `IADAuthentication` interface.
 
 ## Installation
 
@@ -17,8 +16,11 @@ PM> Install-Package ActiveDirectoryLibrary.04.17.24.001
 
 ### Creating an Instance
 
-You can create an instance of `ADAuthentication` using the LDAP credentials during instantiation.
+You can create an instance of `ADAuthentication` using the default constructor or provide LDAP credentials during instantiation.
 
+```csharp
+var adAuth = new ADAuthentication();
+// OR
 var adAuth = new ADAuthentication("ldapAddress", "ldapUsername", "ldapPassword");
 ```
 
@@ -27,7 +29,7 @@ var adAuth = new ADAuthentication("ldapAddress", "ldapUsername", "ldapPassword")
 To validate team member details against Active Directory, use the `ValidateTeamMemberDetails` method.
 
 ```csharp
-var result = adAuth.ValidateTeamMemberDetails(username: "cn");
+var result = adAuth.ValidateTeamMemberDetails("cn");
 ```
 
 ### LDAP Login
@@ -45,7 +47,7 @@ For detailed documentation of the methods and properties provided by the `ADAuth
 
 ## Support
 
-For any issues, bugs, or feature requests, please create an issue on the [GitHub repository](https://github.com/Developers2019/ActiveDirectoryLibrary).
+For any issues, bugs, or feature requests, please create an issue on the [GitHub repository](https://github.com/your/repository).
 
 ## License
 
