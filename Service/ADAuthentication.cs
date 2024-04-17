@@ -4,9 +4,6 @@ using System.DirectoryServices;
 
 namespace ActiveDirectoryLibrary.Service
 {
-    using System;
-    using System.DirectoryServices;
-
     public class ADAuthentication : IADAuthentication
     {
         public string? LdapAddress { get; set; }
@@ -133,5 +130,4 @@ namespace ActiveDirectoryLibrary.Service
             };
         }
     }
-
 }
