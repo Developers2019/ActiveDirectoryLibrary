@@ -4,6 +4,9 @@ using System.DirectoryServices;
 
 namespace ActiveDirectoryLibrary.Service
 {
+    using System;
+    using System.DirectoryServices;
+
     public class ADAuthentication : IADAuthentication
     {
         public string? LdapAddress { get; set; }
@@ -14,21 +17,13 @@ namespace ActiveDirectoryLibrary.Service
         {
         }
 
-        public ADAuthentication(
-            string ldapAddress, 
-            string ldapUsername, 
-            string ldapPassword)
+        public ADAuthentication(string ldapAddress, string ldapUsername, string ldapPassword)
         {
             LdapAddress = ldapAddress;
             LdapUsername = ldapUsername;
             LdapPassword = ldapPassword;
         }
 
-        /// <summary>
-        ///  Determines if the team members details are valid against the Active Directory Domain Services.
-        /// </summary>
-        /// <param name="cn">Common Name</param>
-        /// <returns>an object of type RegisterViewModel</returns>
         public RegisterViewModel ValidateTeamMemberDetails(string cn)
         {
             try
@@ -39,7 +34,7 @@ namespace ActiveDirectoryLibrary.Service
 
                 DirectorySearcher ds = new(de);
 
-                RegisterViewModel usernameCheck = username.Trim().IndexOf('@') <= 0
+                RegisterViewModel usernameCheck = username.IndexOf('@') <= 0
                     ? GetTeamMemberInformation(ds, username)
                     : new RegisterViewModel();
 
@@ -51,76 +46,45 @@ namespace ActiveDirectoryLibrary.Service
             }
         }
 
-        /// <summary>
-        /// Gets the team member's information from the Active Directory Domain Services
-        /// </summary>
-        /// <param name="ds"></param>
-        /// <param name="username"></param>
-        /// <param name="password"></param>
-        /// <param name="email"></param>
-        /// <returns>an object of type RegisterViewModel</returns>
-        private static RegisterViewModel GetTeamMemberInformation(
-            DirectorySearcher ds, 
-            string username)
+        private RegisterViewModel GetTeamMemberInformation(DirectorySearcher ds, string username)
         {
             try
             {
                 DirectorySearcher search = Filter(ds, username);
 
-                SearchResult searchResult = search.FindOne();
+                SearchResult? searchResult = search.FindOne();
 
                 if (searchResult == null)
                 {
-                    return new RegisterViewModel 
+                    return new RegisterViewModel
                     {
-                        ErrorMessage = "No record found", 
-                        Error = true 
+                        ErrorMessage = "No record found",
+                        Error = true
                     };
-
                 }
 
-                RegisterViewModel user = SetUserDetails(searchResult);
-        
-                return user;
+                return SetUserDetails(searchResult);
             }
             catch (Exception)
             {
-                return new RegisterViewModel 
-                { 
-                    ErrorMessage = "No record found", 
-                    Error = true 
+                return new RegisterViewModel
+                {
+                    ErrorMessage = "No record found",
+                    Error = true
                 };
             }
         }
 
-        /// <summary>
-        /// Checks team members login credentials against the Active Directory Domain Services.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns>True if valid , otherwise false if search results yield no results</returns>
         public bool LDAPLogin(LoginViewModel model)
         {
             try
             {
                 string username = model.Email.Trim().ToLower();
-                DirectoryEntry directoryEntry;
+                var directoryEntry = new DirectoryEntry(LdapAddress, username, model.Password);
 
-#if DEBUG
-                string[] det = model.Password.Split('|');
-
-                directoryEntry = model.Password.Contains('|')
-                                      ? new DirectoryEntry(LdapAddress, det[0], det[1])
-                                      : new DirectoryEntry(LdapAddress, username, model.Password);
-#else
-                directoryEntry = new DirectoryEntry(LdapAddress, username, model.Password);
-
-#endif
-                //Performs queries against Active Directory Domain Services
                 DirectorySearcher ds = new(directoryEntry);
 
-                bool usernameCheck = model.Username.Trim().IndexOf('@') <= 0 && (FilterByUserName(ds, username));
-
-                return usernameCheck;
+                return username.IndexOf('@') <= 0 && FilterByUserName(ds, username);
             }
             catch (Exception)
             {
@@ -128,28 +92,15 @@ namespace ActiveDirectoryLibrary.Service
             }
         }
 
-        /// <summary>
-        /// Filters the Active Directory Domain Services by username
-        /// </summary>
-        /// <param name="ds"></param>
-        /// <param name="username"></param>
-        /// <param name="password"></param>
-        /// <param name="email"></param>
-        /// <returns>True if valid , otherwise false if search results yield no results.</returns>
-        private static bool FilterByUserName(
-            DirectorySearcher ds, 
-            string username)
+        private static bool FilterByUserName(DirectorySearcher ds, string username)
         {
             try
             {
-                //Performs queries against Active Directory Domain Services
                 DirectorySearcher search = Filter(ds, username);
 
                 SearchResult? searchResult = search.FindOne();
 
-                bool isValid = searchResult != null;
-
-                return isValid;
+                return searchResult != null;
             }
             catch (Exception)
             {
@@ -157,15 +108,7 @@ namespace ActiveDirectoryLibrary.Service
             }
         }
 
-        /// <summary>
-        /// Filter applied against the Active Directory Domain Services
-        /// </summary>
-        /// <param name="ds"></param>
-        /// <param name="username"></param>
-        /// <returns>an object of type DirectorySearcher</returns>
-        private static DirectorySearcher Filter(
-            DirectorySearcher ds, 
-            string username)
+        private static DirectorySearcher Filter(DirectorySearcher ds, string username)
         {
             ds.Filter = $"(&((&(objectCategory=Person)(objectClass=User)))(samaccountname={username}))";
             ds.SearchScope = SearchScope.Subtree;
@@ -173,30 +116,22 @@ namespace ActiveDirectoryLibrary.Service
             return ds;
         }
 
-        private static RegisterViewModel SetUserDetails(SearchResult searchResult)
+        private RegisterViewModel SetUserDetails(SearchResult searchResult)
         {
-
-            string? name = searchResult.GetDirectoryEntry().Properties["GivenName"].Value?.ToString() ?? "";
-
-            string? surname = searchResult.GetDirectoryEntry().Properties["SN"].Value?.ToString()
-                           ?? searchResult.GetDirectoryEntry().Properties["cn"].Value!.ToString()!.Split(' ')[1];
-
-            string? email = searchResult.GetDirectoryEntry().Properties["mail"].Value?.ToString() ?? "";
-                   
-
+            string name = searchResult.GetDirectoryEntry().Properties["GivenName"].Value?.ToString() ?? "";
+            string surname = searchResult.GetDirectoryEntry().Properties["SN"].Value?.ToString()
+                            ?? searchResult.GetDirectoryEntry().Properties["cn"].Value!.ToString()!.Split(' ')[1];
+            string email = searchResult.GetDirectoryEntry().Properties["mail"].Value?.ToString() ?? "";
             string department = searchResult.GetDirectoryEntry().Properties["department"].Value?.ToString() ?? "";
 
-            RegisterViewModel user = new()
+            return new RegisterViewModel
             {
-                FullName = name.ToString(),
-                LastName = surname.ToString(),
-                Email = email.ToString(),
-                Department = department.ToString(),
+                FullName = name,
+                LastName = surname,
+                Email = email,
+                Department = department
             };
-
-            return user;
-
-
         }
     }
+
 }
