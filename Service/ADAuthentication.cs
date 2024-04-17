@@ -39,7 +39,7 @@ namespace ActiveDirectoryLibrary.Service
 
                 DirectorySearcher ds = new(de);
 
-                RegisterViewModel usernameCheck = username.Trim().IndexOf("@") <= 0
+                RegisterViewModel usernameCheck = username.Trim().IndexOf('@') <= 0
                     ? GetTeamMemberInformation(ds, username)
                     : new RegisterViewModel();
 
@@ -118,7 +118,7 @@ namespace ActiveDirectoryLibrary.Service
                 //Performs queries against Active Directory Domain Services
                 DirectorySearcher ds = new(directoryEntry);
 
-                bool usernameCheck = model.Username.Trim().IndexOf("@") <= 0 && (FilterByUserName(ds, username));
+                bool usernameCheck = model.Username.Trim().IndexOf('@') <= 0 && (FilterByUserName(ds, username));
 
                 return usernameCheck;
             }
