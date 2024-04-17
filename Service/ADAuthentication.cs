@@ -46,7 +46,7 @@ namespace ActiveDirectoryLibrary.Service
             }
         }
 
-        private RegisterViewModel GetTeamMemberInformation(DirectorySearcher ds, string username)
+        private static RegisterViewModel GetTeamMemberInformation(DirectorySearcher ds, string username)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace ActiveDirectoryLibrary.Service
             return ds;
         }
 
-        private RegisterViewModel SetUserDetails(SearchResult searchResult)
+        private static RegisterViewModel SetUserDetails(SearchResult searchResult)
         {
             string name = searchResult.GetDirectoryEntry().Properties["GivenName"].Value?.ToString() ?? "";
             string surname = searchResult.GetDirectoryEntry().Properties["SN"].Value?.ToString()
